@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 from typing import TypedDict, Any
 
@@ -39,7 +40,6 @@ class MarketState(TypedDict):
 def content_to_text(content):
 
     if isinstance(content, str):
-
         return content
 
     if isinstance(content, list):
@@ -100,7 +100,11 @@ def select_market_tools(
         for keyword in historical_keywords
     ):
 
+        print("[ROUTER] HISTORICAL tools selected")
+
         return historical_tools
+
+    print("[ROUTER] LIVE tools selected")
 
     return live_tools
 
@@ -120,7 +124,7 @@ def get_tool_by_name(
 
 
 # =========================================================
-# EXECUTE MCP CALLS CONCURRENTLY
+# EXECUTE MCP CALLS
 # =========================================================
 
 async def execute_tool_calls(
@@ -133,8 +137,14 @@ async def execute_tool_calls(
     ):
 
         tool_name = tool_call["name"]
-
         arguments = tool_call["args"]
+
+        print(
+            f"[MCP START] {tool_name} | "
+            f"args={arguments}"
+        )
+
+        tool_start = time.perf_counter()
 
         tool = get_tool_by_name(
             tools,
@@ -142,6 +152,11 @@ async def execute_tool_calls(
         )
 
         if tool is None:
+
+            print(
+                f"[MCP ERROR] {tool_name} | "
+                f"tool not found"
+            )
 
             return {
                 "tool": tool_name,
@@ -158,6 +173,15 @@ async def execute_tool_calls(
                 arguments
             )
 
+            print(
+                f"[MCP END] {tool_name} | "
+                f"time={time.perf_counter() - tool_start:.2f}s"
+            )
+
+            print(
+                f"[MCP RESULT] {result}"
+            )
+
             return {
                 "tool": tool_name,
                 "arguments": arguments,
@@ -165,6 +189,11 @@ async def execute_tool_calls(
             }
 
         except Exception as exc:
+
+            print(
+                f"[MCP ERROR] {tool_name} | "
+                f"{exc}"
+            )
 
             return {
                 "tool": tool_name,
@@ -193,7 +222,16 @@ async def get_market_data(
     historical_tools: list,
 ):
 
+    node_start = time.perf_counter()
+
     query = state["query"]
+
+    print("\n[START NODE] market_data")
+    print(f"[MARKET QUERY] {query}")
+
+    # -----------------------------------------------------
+    # SELECT LIVE / HISTORICAL
+    # -----------------------------------------------------
 
     selected_tools = select_market_tools(
         query,
@@ -201,7 +239,17 @@ async def get_market_data(
         historical_tools,
     )
 
+    print(
+        f"[MARKET TOOLS READY] "
+        f"count={len(selected_tools)}"
+    )
+
     if not selected_tools:
+
+        print(
+            "[MARKET DATA ERROR] "
+            "No market-data tools available"
+        )
 
         return {
             "data": [
@@ -217,6 +265,10 @@ async def get_market_data(
     # -----------------------------------------------------
     # FIRST MCP PLANNING ROUND
     # -----------------------------------------------------
+
+    print("[START] First market-data LLM call")
+
+    llm_start = time.perf_counter()
 
     tool_llm = llm.bind_tools(
         selected_tools
@@ -257,9 +309,31 @@ Important rules:
         ]
     )
 
+    print(
+        f"[END] First market-data LLM call | "
+        f"time={time.perf_counter() - llm_start:.2f}s"
+    )
+
     first_tool_calls = first_result.tool_calls
 
+    print(
+        f"[FIRST LLM] Tool calls={len(first_tool_calls)}"
+    )
+
+    for call in first_tool_calls:
+
+        print(
+            f"[FIRST LLM TOOL] "
+            f"{call['name']} | "
+            f"args={call['args']}"
+        )
+
     if not first_tool_calls:
+
+        print(
+            "[MARKET DATA ERROR] "
+            "LLM selected no tools"
+        )
 
         return {
             "data": [
@@ -273,32 +347,39 @@ Important rules:
         }
 
     # -----------------------------------------------------
-    # EXECUTE ALL FIRST-ROUND CALLS CONCURRENTLY
+    # EXECUTE FIRST MCP BATCH
     # -----------------------------------------------------
+
+    print("[START] First MCP tool execution")
+
+    first_mcp_start = time.perf_counter()
 
     first_results = await execute_tool_calls(
         first_tool_calls,
         selected_tools,
     )
 
+    print(
+        f"[END] First MCP tool execution | "
+        f"time={time.perf_counter() - first_mcp_start:.2f}s"
+    )
+
     collected_data = list(
         first_results
     )
 
+    print(
+        f"[DATA AFTER FIRST MCP] "
+        f"{collected_data}"
+    )
+
     # -----------------------------------------------------
     # SECOND MCP PLANNING ROUND
-    #
-    # This handles:
-    #
-    # company name
-    #      ↓
-    # symbol lookup
-    #      ↓
-    # stock quote
-    #
-    # For multiple companies, all required follow-up
-    # quote calls can be generated and executed together.
     # -----------------------------------------------------
+
+    print("[START] Second market-data LLM call")
+
+    second_llm_start = time.perf_counter()
 
     second_prompt = f"""
 You are continuing a market-data retrieval task.
@@ -337,7 +418,25 @@ Rules:
         ]
     )
 
+    print(
+        f"[END] Second market-data LLM call | "
+        f"time={time.perf_counter() - second_llm_start:.2f}s"
+    )
+
     second_tool_calls = second_result.tool_calls
+
+    print(
+        f"[SECOND LLM] "
+        f"Tool calls={len(second_tool_calls)}"
+    )
+
+    for call in second_tool_calls:
+
+        print(
+            f"[SECOND LLM TOOL] "
+            f"{call['name']} | "
+            f"args={call['args']}"
+        )
 
     # -----------------------------------------------------
     # SECOND MCP BATCH
@@ -345,14 +444,39 @@ Rules:
 
     if second_tool_calls:
 
+        print("[START] Second MCP tool execution")
+
+        second_mcp_start = time.perf_counter()
+
         second_results = await execute_tool_calls(
             second_tool_calls,
             selected_tools,
         )
 
+        print(
+            f"[END] Second MCP tool execution | "
+            f"time={time.perf_counter() - second_mcp_start:.2f}s"
+        )
+
         collected_data.extend(
             second_results
         )
+
+        print(
+            f"[DATA AFTER SECOND MCP] "
+            f"{collected_data}"
+        )
+
+    else:
+
+        print(
+            "[SECOND MCP] No additional data required"
+        )
+
+    print(
+        f"[END NODE] market_data | "
+        f"time={time.perf_counter() - node_start:.2f}s"
+    )
 
     return {
         "data": collected_data
@@ -367,9 +491,14 @@ async def analyze_data(
     state: MarketState,
 ):
 
-    query = state["query"]
+    node_start = time.perf_counter()
 
+    query = state["query"]
     data = state["data"]
+
+    print("\n[START NODE] analyze")
+    print(f"[ANALYSIS QUERY] {query}")
+    print(f"[ANALYSIS INPUT DATA] {data}")
 
     calculation_tools = [
         calculate_return,
@@ -412,12 +541,52 @@ Rules:
    result for each company.
 """
 
+    print("[START] Analysis LLM call")
+
+    analysis_start = time.perf_counter()
+
     result = await analysis_llm.ainvoke(
         [
             HumanMessage(
                 content=prompt
             )
         ]
+    )
+
+    print(
+        f"[END] Analysis LLM call | "
+        f"time={time.perf_counter() - analysis_start:.2f}s"
+    )
+
+    print(
+        f"[ANALYSIS RESULT] "
+        f"{result.content}"
+    )
+
+    if result.tool_calls:
+
+        print(
+            f"[ANALYSIS TOOLS] "
+            f"calls={len(result.tool_calls)}"
+        )
+
+        for call in result.tool_calls:
+
+            print(
+                f"[ANALYSIS TOOL] "
+                f"{call['name']} | "
+                f"args={call['args']}"
+            )
+
+    else:
+
+        print(
+            "[ANALYSIS TOOLS] No calculation tool used"
+        )
+
+    print(
+        f"[END NODE] analyze | "
+        f"time={time.perf_counter() - node_start:.2f}s"
     )
 
     return {
@@ -433,6 +602,8 @@ def generate_response(
     state: MarketState,
 ):
 
+    print("\n[START NODE] response")
+
     analysis = state["analysis"]
 
     if hasattr(
@@ -440,16 +611,24 @@ def generate_response(
         "content",
     ):
 
-        return {
-            "response": content_to_text(
-                analysis.content
-            )
-        }
+        response = content_to_text(
+            analysis.content
+        )
 
-    return {
-        "response": content_to_text(
+    else:
+
+        response = content_to_text(
             analysis
         )
+
+    print(
+        f"[RESPONSE RESULT] {response}"
+    )
+
+    print("[END NODE] response")
+
+    return {
+        "response": response
     }
 
 
@@ -462,12 +641,14 @@ def build_graph(
     historical_tools,
 ):
 
+    print("[START] Creating LangGraph")
+
     workflow = StateGraph(
         MarketState
     )
 
     # -----------------------------------------------------
-    # MARKET DATA
+    # MARKET DATA NODE
     # -----------------------------------------------------
 
     async def market_data_node(
@@ -481,7 +662,7 @@ def build_graph(
         )
 
     # -----------------------------------------------------
-    # ANALYSIS
+    # ANALYSIS NODE
     # -----------------------------------------------------
 
     async def analysis_node(
@@ -493,7 +674,7 @@ def build_graph(
         )
 
     # -----------------------------------------------------
-    # NODES
+    # ADD NODES
     # -----------------------------------------------------
 
     workflow.add_node(
@@ -535,4 +716,8 @@ def build_graph(
         END,
     )
 
-    return workflow.compile()
+    graph = workflow.compile()
+
+    print("[END] LangGraph created")
+
+    return graph
