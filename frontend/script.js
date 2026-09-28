@@ -2,8 +2,6 @@
 // MARKET LENS BACKEND
 // ========================================
 
-// Replace this with your Render backend URL.
-
 const BACKEND_URL = "https://market-lens-wn6l.onrender.com";
 
 
@@ -28,11 +26,8 @@ function setQuery(text) {
 async function askMarketLens() {
 
     const queryBox = document.getElementById("query");
-
     const answerBox = document.getElementById("answer");
-
     const askButton = document.getElementById("askButton");
-
 
     const query = queryBox.value.trim();
 
@@ -53,9 +48,7 @@ async function askMarketLens() {
     // Loading state
 
     askButton.disabled = true;
-
     askButton.textContent = "Thinking...";
-
 
     answerBox.className = "loading";
 
@@ -81,40 +74,25 @@ async function askMarketLens() {
         );
 
 
+        console.log("Response status:", response.status);
+
+
         // Check HTTP response
 
         if (!response.ok) {
 
             throw new Error(
-                `HTTP error: ${response.status}`
+                `Backend returned ${response.status}`
             );
         }
 
 
-        // Convert response to JSON
+        // Backend returns plain text/string
 
-        const data = await response.json();
-
-
-        console.log("Backend response:", data);
+        const answer = await response.text();
 
 
-        /*
-            Expected backend response:
-
-            {
-                "answer": "..."
-            }
-
-            If your backend uses another
-            field, we can change this.
-        */
-
-        const answer =
-            data.answer ||
-            data.response ||
-            data.result ||
-            JSON.stringify(data);
+        console.log("Backend answer:", answer);
 
 
         // Display answer
@@ -132,8 +110,8 @@ async function askMarketLens() {
         answerBox.className = "error";
 
         answerBox.textContent =
-            "Unable to connect to Market Lens backend. " +
-            "Please check the backend URL and try again.";
+            "Unable to get a response from Market Lens.\n\n" +
+            error.message;
 
 
     } finally {
