@@ -4,7 +4,7 @@
 
 // Replace this with your Render backend URL.
 
-const BACKEND_URL = "YOUR_BACKEND_URL";
+const BACKEND_URL = "https://market-lens-wn6l.onrender.com";
 
 
 // ========================================
