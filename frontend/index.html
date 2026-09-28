@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Market Lens</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- Header -->
+        <header class="header">
+
+            <h1>Market Lens</h1>
+
+            <p>
+                An AI-powered market assistant that helps you
+                understand stocks, market data, and trends.
+            </p>
+
+        </header>
+
+
+        <!-- What can I ask? -->
+        <section class="info-card">
+
+            <h2>What can I ask?</h2>
+
+            <div class="query-list">
+
+                <div>Stock prices and closing prices</div>
+
+                <div>NIFTY and market information</div>
+
+                <div>Historical stock data</div>
+
+                <div>Stock performance and trends</div>
+
+                <div>Company-related market questions</div>
+
+                <div>Basic market analytics</div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Query -->
+        <section class="query-card">
+
+            <h2>Ask Market Lens</h2>
+
+            <textarea
+                id="query"
+                placeholder="Example: What is the closing price of TCS?"
+            ></textarea>
+
+
+            <!-- Example questions -->
+            <div class="examples">
+
+                <button onclick="setQuery('What is the closing price of TCS?')">
+                    TCS closing price
+                </button>
+
+                <button onclick="setQuery('What is the current NIFTY 50 value?')">
+                    NIFTY 50
+                </button>
+
+                <button onclick="setQuery('How has Infosys performed recently?')">
+                    Infosys performance
+                </button>
+
+            </div>
+
+
+            <button
+                id="askButton"
+                class="ask-button"
+                onclick="askMarketLens()">
+
+                Ask Market Lens
+
+            </button>
+
+        </section>
+
+
+        <!-- Answer -->
+        <section class="answer-card">
+
+            <h2>Answer</h2>
+
+            <div id="answer" class="answer-placeholder">
+
+                Your answer will appear here.
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

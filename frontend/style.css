@@ -1,0 +1,316 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+
+    background: #f5f7fb;
+
+    color: #1f2937;
+
+    min-height: 100vh;
+}
+
+
+.container {
+    width: 90%;
+
+    max-width: 900px;
+
+    margin: auto;
+
+    padding: 50px 0;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+    text-align: center;
+
+    margin-bottom: 35px;
+}
+
+
+.header h1 {
+    font-size: 42px;
+
+    color: #111827;
+
+    margin-bottom: 12px;
+}
+
+
+.header p {
+    font-size: 17px;
+
+    color: #6b7280;
+
+    line-height: 1.6;
+}
+
+
+/* =========================
+   CARDS
+========================= */
+
+.info-card,
+.query-card,
+.answer-card {
+
+    background: white;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 12px;
+
+    padding: 25px;
+
+    margin-bottom: 25px;
+}
+
+
+.info-card h2,
+.query-card h2,
+.answer-card h2 {
+
+    font-size: 20px;
+
+    margin-bottom: 18px;
+
+    color: #111827;
+}
+
+
+/* =========================
+   QUERY TYPES
+========================= */
+
+.query-list {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+}
+
+
+.query-list div {
+
+    background: #f8fafc;
+
+    padding: 12px;
+
+    border-radius: 7px;
+
+    color: #4b5563;
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   TEXTAREA
+========================= */
+
+textarea {
+
+    width: 100%;
+
+    min-height: 140px;
+
+    resize: vertical;
+
+    padding: 15px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 8px;
+
+    font-family: inherit;
+
+    font-size: 16px;
+
+    outline: none;
+}
+
+
+textarea:focus {
+
+    border-color: #2563eb;
+}
+
+
+/* =========================
+   EXAMPLES
+========================= */
+
+.examples {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-top: 12px;
+
+    margin-bottom: 18px;
+}
+
+
+.examples button {
+
+    border: none;
+
+    background: #f3f4f6;
+
+    color: #4b5563;
+
+    padding: 8px 12px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-size: 13px;
+}
+
+
+.examples button:hover {
+
+    background: #e5e7eb;
+}
+
+
+/* =========================
+   ASK BUTTON
+========================= */
+
+.ask-button {
+
+    width: 100%;
+
+    padding: 13px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #2563eb;
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+.ask-button:hover {
+
+    background: #1d4ed8;
+}
+
+
+.ask-button:disabled {
+
+    background: #9ca3af;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================
+   ANSWER
+========================= */
+
+.answer-placeholder {
+
+    min-height: 100px;
+
+    padding: 15px;
+
+    background: #f8fafc;
+
+    border-radius: 8px;
+
+    color: #9ca3af;
+
+    line-height: 1.7;
+
+    white-space: pre-wrap;
+}
+
+
+.answer {
+
+    color: #374151;
+}
+
+
+.loading {
+
+    color: #6b7280;
+}
+
+
+.error {
+
+    color: #dc2626;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+
+    .container {
+
+        width: 94%;
+
+        padding: 30px 0;
+    }
+
+
+    .header h1 {
+
+        font-size: 34px;
+    }
+
+
+    .header p {
+
+        font-size: 15px;
+    }
+
+
+    .query-list {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    .examples {
+
+        flex-direction: column;
+    }
+
+
+    .examples button {
+
+        width: 100%;
+    }
+
+}

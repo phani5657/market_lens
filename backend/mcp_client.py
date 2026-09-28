@@ -7,9 +7,9 @@ from mcp.client.streamable_http import streamable_http_client
 from langchain_core.tools import StructuredTool
 
 
-LIVE_MCP_URL = "https://mcp.nseindia.in/cmmkt/mcp"
-HISTORICAL_MCP_URL = "https://mcp.nseindia.in/bhavcopy/cm/mcp"
+LIVE_MCP_URL = "https://gateway.mcpservers.org/yahoo-finance/mcp"
 
+HISTORICAL_MCP_URL = "https://gateway.mcpservers.org/yahoo-finance/mcp"
 
 # =========================================================
 # MCP SESSION
